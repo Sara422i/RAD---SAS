@@ -1,0 +1,12 @@
+# macOS
+.DS_Store
+
+# C# / .NET build files
+bin/
+obj/
+
+# VS Code / Rider / Visual Studio optional
+.vscode/
+.idea/
+*.user
+*.suo

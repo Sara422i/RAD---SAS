@@ -77,3 +77,21 @@ ExactSecondMoment exact = new ExactSecondMoment();
 long S = exact.ComputeS(testStream, hExact, lExact);
 
 Console.WriteLine("S, forventet 10314: " + S);
+
+// Rigtig test opgave 3 med stream-generatoren
+Console.WriteLine("\nOpgave 3 på rigtig stream");
+
+int nExact = 10000000;
+int lExactReal = 10;
+
+var realStream = Helpers.CreateStream(nExact, lExactReal);
+var hExactReal = HashFunctions.MultiplyShiftHashFunction(lExactReal);
+
+var watch3 = System.Diagnostics.Stopwatch.StartNew();
+
+ExactSecondMoment exactReal = new ExactSecondMoment();
+long realS = exactReal.ComputeS(realStream, hExactReal, lExactReal);
+
+watch3.Stop();
+
+Console.WriteLine($"S = {realS}, Time = {watch3.ElapsedMilliseconds} ms");

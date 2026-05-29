@@ -33,21 +33,25 @@ public static class HashFunctions {
 }
 
 // Opgave 2. Implementering af hashtabel med chaining.
-public class ChainedHashTable {
+public class ChainedHashTable
+{
     readonly List<Entry>[] table;
     readonly Func<ulong, ulong> h;
 
-    class Entry {
+    class Entry
+    {
         public ulong Key;
         public long Value;
 
-        public Entry(ulong key, long value) {
+        public Entry(ulong key, long value)
+        {
             Key = key;
             Value = value;
         }
     }
 
-    public ChainedHashTable(Func<ulong, ulong> hashFunction, int l) {
+    public ChainedHashTable(Func<ulong, ulong> hashFunction, int l)
+    {
         h = hashFunction;
         int size = 1 << l;
         table = new List<Entry>[size];
@@ -56,7 +60,8 @@ public class ChainedHashTable {
     }
 
     // a) get(x): Returnerer værdien for x, eller 0 hvis x ikke findes.
-    public long Get(ulong x) {
+    public long Get(ulong x)
+    {
         int index = (int)h(x);
         foreach (Entry entry in table[index])
             if (entry.Key == x)
@@ -65,10 +70,12 @@ public class ChainedHashTable {
     }
 
     // b) set(x, v): Sætter x til værdien v.
-    public void Set(ulong x, long v) {
+    public void Set(ulong x, long v)
+    {
         int index = (int)h(x);
         foreach (Entry entry in table[index])
-            if (entry.Key == x) {
+            if (entry.Key == x)
+            {
                 entry.Value = v;
                 return;
             }
@@ -76,29 +83,43 @@ public class ChainedHashTable {
     }
 
     // c) increment(x, d): Lægger d til værdien for x.
-    public void Increment(ulong x, long d) {
+    public void Increment(ulong x, long d)
+    {
         int index = (int)h(x);
         foreach (Entry entry in table[index])
-            if (entry.Key == x) {
+            if (entry.Key == x)
+            {
                 entry.Value += d;
                 return;
             }
         table[index].Add(new Entry(x, d));
     }
+    public long SumOfSquares()
+    {
+        long sum = 0;
 
-    // Opgave 3. Udregning af kvadratsummer.
-    public class ExactSecondMoment {
-        public long ComputeS(IEnumerable<Tuple<ulong, int>> stream, Func<ulong, ulong> h, int l) {
-            ChainedHashTable table = new(h, l);
+        foreach (List<Entry> bucket in table)
+            foreach (Entry entry in bucket)
+                sum += entry.Value * entry.Value;
 
-            foreach (var pair in stream) {
-                ulong x = pair.Item1;
-                int d = pair.Item2;
+        return sum;
+    }
 
-                table.Increment(x, d);
-            }
+}
 
-            return table.SumOfSquares();
+ // Opgave 3. Udregning af kvadratsummer.
+public class ExactSecondMoment
+{
+    public long ComputeS(IEnumerable<Tuple<ulong, int>> stream, Func<ulong, ulong> h, int l) {
+        ChainedHashTable table = new(h, l);
+
+        foreach (var pair in stream) {
+            ulong x = pair.Item1;
+            int d = pair.Item2;
+
+            table.Increment(x, d);
         }
+
+        return table.SumOfSquares();
     }
 }

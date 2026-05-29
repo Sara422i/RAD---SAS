@@ -58,22 +58,37 @@ table.Increment(20UL, 4); // ny nøgle
 Console.WriteLine("2(c) Get(10), forventet 8: " + table.Get(10UL));
 Console.WriteLine("2(c) Get(14), forventet 6: " + table.Get(14UL));
 Console.WriteLine("2(c) Get(20), forventet 4: " + table.Get(20UL));
+// ===================== Opgave 3 =====================
+Console.WriteLine("\n=== Opgave 3: Kvadratsummer med stigende l ===");
 
-//Test opgave 3 
-Console.WriteLine("\nTest opgave 3");
+int nOpg3 = 10_000_000; // n fast, 2^l <= n, dvs. l <= 23
 
-var testStream = new List<Tuple<ulong, int>>
-{
-    Tuple.Create(7UL, 20),
-    Tuple.Create(3UL, -5),
-    Tuple.Create(7UL, -3),
-    Tuple.Create(9UL, 100)
-};
+Console.WriteLine($"{"l",4} {"2^l",10} {"S (shift)",18} {"ms (shift)",12} {"S (prime)",18} {"ms (prime)",12}");
+Console.WriteLine(new string('-', 80));
 
-int lExact = 4;
-var hExact = HashFunctions.MultiplyShiftHashFunction(lExact);
+for (int lVal = 2; lVal <= 24; lVal += 2) {
+    long twoToL = 1L << lVal;
+    if (twoToL > nOpg3) {
+        Console.WriteLine($"l={lVal}: 2^l={twoToL} > n={nOpg3}, stopper.");
+        break;
+    }
 
-ExactSecondMoment exact = new ExactSecondMoment();
-long S = exact.ComputeS(testStream, hExact, lExact);
+    // Generer strømmen ÉN gang og gem den (bruges til begge hashfunktioner)
+    var streamOpg3 = Helpers.CreateStream(nOpg3, lVal).ToList();
 
-Console.WriteLine("S, forventet 10314: " + S);
+    // --- Multiply-shift ---
+    var hShiftOpg3 = HashFunctions.MultiplyShiftHashFunction(lVal);
+    var swShift = System.Diagnostics.Stopwatch.StartNew();
+    var exactShift = new ExactSecondMoment();
+    long sShift = exactShift.ComputeS(streamOpg3, hShiftOpg3, lVal);
+    swShift.Stop();
+
+    // --- Multiply-mod-prime ---
+    var hPrimeOpg3 = HashFunctions.MultiplyModPrimeHashFunction(lVal);
+    var swPrime = System.Diagnostics.Stopwatch.StartNew();
+    var exactPrime = new ExactSecondMoment();
+    long sPrime = exactPrime.ComputeS(streamOpg3, hPrimeOpg3, lVal);
+    swPrime.Stop();
+
+    Console.WriteLine($"{lVal,4} {twoToL,10} {sShift,18} {swShift.ElapsedMilliseconds,10} ms {sPrime,18} {swPrime.ElapsedMilliseconds,10} ms");
+}

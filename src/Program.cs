@@ -2,17 +2,20 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Numerics;
 
 int n = 10000000;
 int l = 10;
 
+Console.WriteLine("\nTest opgave 1");
+
 // Test opgave 1a
 var h1 = HashFunctions.MultiplyShiftHashFunction(l);
-Console.WriteLine("Multiply-shift: " + h1(123456789UL));
+Console.WriteLine("1(a) Multiply-shift: " + h1(123456789UL));
 
 // Test opgave 1b
 var h2 = HashFunctions.MultiplyModPrimeHashFunction(l);
-Console.WriteLine("Multiply-mod-prime: " + h2(123456789UL));
+Console.WriteLine("1(b) Multiply-mod-prime: " + h2(123456789UL));
 
 // Test opgave 1c
 var stream = Helpers.CreateStream(n, l).ToList();
@@ -23,7 +26,7 @@ var hShift = HashFunctions.MultiplyShiftHashFunction(l);
 foreach (var (x, d) in stream)
     sum1 += hShift(x);
 watch1.Stop();
-Console.WriteLine($"Multiply-shift: Sum = {sum1}, Time = {watch1.ElapsedMilliseconds} ms");
+Console.WriteLine($"1(c) Multiply-shift: Sum = {sum1}, Time = {watch1.ElapsedMilliseconds} ms");
 
 var watch2 = System.Diagnostics.Stopwatch.StartNew();
 ulong sum2 = 0;
@@ -31,7 +34,7 @@ var hPrime = HashFunctions.MultiplyModPrimeHashFunction(l);
 foreach (var (x, d) in stream)
     sum2 += hPrime(x);
 watch2.Stop();
-Console.WriteLine($"Multiply-mod-prime: Sum = {sum2}, Time = {watch2.ElapsedMilliseconds} ms");
+Console.WriteLine($"1(c) Multiply-mod-prime: Sum = {sum2}, Time = {watch2.ElapsedMilliseconds} ms");
 
 // Test opgave 2: ChainedHashTable
 Console.WriteLine("\nTest opgave 2");
@@ -197,3 +200,15 @@ using (StreamWriter writer = new StreamWriter("opgave7_medians.csv"))
 Console.WriteLine("CSV-filer lavet:");
 Console.WriteLine("opgave7_sorted_estimates.csv");
 Console.WriteLine("opgave7_medians.csv");
+=======
+// Test Opgave 4
+Console.WriteLine("\nTest opgave 4");
+
+var g = CountSketch.FourUniversalHashFunction();
+
+// Test at g returnerer værdier i [0, p-1]
+BigInteger pTest = (BigInteger.One << 89) - 1;
+for (ulong testX = 0; testX < 5; testX++) {
+    BigInteger gx = g(testX);
+    Console.WriteLine($"g({testX}) = {gx}, i [0,p-1]: {gx >= 0 && gx < pTest}");
+}

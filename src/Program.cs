@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 int n = 10000000;
 int l = 10;
@@ -66,7 +67,7 @@ int nOpg3 = 10_000_000; // n fast, 2^l <= n, dvs. l <= 23
 Console.WriteLine($"{"l",4} {"2^l",10} {"S (shift)",18} {"ms (shift)",12} {"S (prime)",18} {"ms (prime)",12}");
 Console.WriteLine(new string('-', 80));
 
-for (int lVal = 2; lVal <= 24; lVal += 2) {
+for (int lVal = 2; lVal <= 6; lVal += 2) {
     long twoToL = 1L << lVal;
     if (twoToL > nOpg3) {
         Console.WriteLine($"l={lVal}: 2^l={twoToL} > n={nOpg3}, stopper.");
@@ -92,3 +93,107 @@ for (int lVal = 2; lVal <= 24; lVal += 2) {
 
     Console.WriteLine($"{lVal,4} {twoToL,10} {sShift,18} {swShift.ElapsedMilliseconds,10} ms {sPrime,18} {swPrime.ElapsedMilliseconds,10} ms");
 }
+
+Console.WriteLine("\n=== Opgave 7: Count-Sketch eksperiment ===");
+
+int n7 = 10_000_000;
+
+// Vælg l lige under den grænse hvor opgave 3 blev for tung.
+// Hvis I fx kunne klare l=22, men ikke l=24, så brug l=22.
+int l7 = 22;
+
+// m = 2^t counters i Count-Sketch
+int t = 12;
+int m = 1 << t;
+
+var sigma = Helpers.CreateStream(n7, l7).ToList();
+
+Console.WriteLine("Beregner eksakt S med chaining...");
+
+var exactHash = HashFunctions.MultiplyShiftHashFunction(l7);
+var exact = new ExactSecondMoment();
+
+var swExact = System.Diagnostics.Stopwatch.StartNew();
+long S = exact.ComputeS(sigma, exactHash, l7);
+swExact.Stop();
+
+Console.WriteLine($"Eksakt S = {S}");
+Console.WriteLine($"Tid for chaining = {swExact.ElapsedMilliseconds} ms");
+
+List<long> estimates = new();
+
+Console.WriteLine("Kører Count-Sketch 100 gange...");
+
+for (int i = 0; i < 100; i++)
+{
+    // VIGTIGT: ny g hver gang
+    var g = CountSketch.FourUniversalHashFunction();
+
+    var sketch = new CountSketch(t, g);
+    sketch.ProcessStream(sigma);
+
+    long X = sketch.Estimate();
+    estimates.Add(X);
+
+    Console.WriteLine($"Run {i + 1}: X = {X}");
+}
+
+// MSE
+double mse = 0;
+
+foreach (long X in estimates)
+{
+    double diff = X - S;
+    mse += diff * diff;
+}
+
+mse /= 100.0;
+
+double theoreticalVariance = 2.0 * S * S / m;
+
+Console.WriteLine($"\nMSE = {mse}");
+Console.WriteLine($"Teoretisk Var[X] ≈ 2S^2/m = {theoreticalVariance}");
+
+// Sorterede estimater til første plot
+var sortedEstimates = estimates.OrderBy(x => x).ToList();
+
+using (StreamWriter writer = new StreamWriter("opgave7_sorted_estimates.csv"))
+{
+    writer.WriteLine("i,X,S");
+
+    for (int i = 0; i < sortedEstimates.Count; i++)
+    {
+        writer.WriteLine($"{i + 1},{sortedEstimates[i]},{S}");
+    }
+}
+
+// Median-trick
+List<long> medians = new();
+
+for (int group = 0; group < 9; group++)
+{
+    var G = estimates
+        .Skip(group * 11)
+        .Take(11)
+        .OrderBy(x => x)
+        .ToList();
+
+    long median = G[5]; // midterste af 11 tal
+    medians.Add(median);
+}
+
+medians.Sort();
+
+using (StreamWriter writer = new StreamWriter("opgave7_medians.csv"))
+{
+    writer.WriteLine("i,M,S");
+
+    for (int i = 0; i < medians.Count; i++)
+    {
+        writer.WriteLine($"{i + 1},{medians[i]},{S}");
+    }
+}
+
+Console.WriteLine("CSV-filer lavet:");
+Console.WriteLine("opgave7_sorted_estimates.csv");
+Console.WriteLine("opgave7_medians.csv");

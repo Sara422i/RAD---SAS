@@ -97,6 +97,19 @@ for (int lVal = 2; lVal <= 6; lVal += 2) {
     Console.WriteLine($"{lVal,4} {twoToL,10} {sShift,18} {swShift.ElapsedMilliseconds,10} ms {sPrime,18} {swPrime.ElapsedMilliseconds,10} ms");
 }
 
+// Test Opgave 4
+Console.WriteLine("\nTest opgave 4");
+
+var g = CountSketch.FourUniversalHashFunction();
+
+// Test at g returnerer værdier i [0, p-1]
+BigInteger pTest = (BigInteger.One << 89) - 1;
+for (ulong testX = 0; testX < 5; testX++)
+{
+    BigInteger gx = g(testX);
+    Console.WriteLine($"g({testX}) = {gx}, i [0,p-1]: {gx >= 0 && gx < pTest}");
+}
+
 Console.WriteLine("\n=== Opgave 7: Count-Sketch eksperiment ===");
 
 int n7 = 10_000_000;
@@ -130,9 +143,9 @@ Console.WriteLine("Kører Count-Sketch 100 gange...");
 for (int i = 0; i < 100; i++)
 {
     // VIGTIGT: ny g hver gang
-    var g = CountSketch.FourUniversalHashFunction();
+    var gRun = CountSketch.FourUniversalHashFunction();
 
-    var sketch = new CountSketch(t, g);
+    var sketch = new CountSketch(t, gRun);
     sketch.ProcessStream(sigma);
 
     long X = sketch.Estimate();
@@ -200,15 +213,58 @@ using (StreamWriter writer = new StreamWriter("opgave7_medians.csv"))
 Console.WriteLine("CSV-filer lavet:");
 Console.WriteLine("opgave7_sorted_estimates.csv");
 Console.WriteLine("opgave7_medians.csv");
-=======
-// Test Opgave 4
-Console.WriteLine("\nTest opgave 4");
 
-var g = CountSketch.FourUniversalHashFunction();
+Console.WriteLine("\n Opgave 8: Forskellige værdier af m ");
 
-// Test at g returnerer værdier i [0, p-1]
-BigInteger pTest = (BigInteger.One << 89) - 1;
-for (ulong testX = 0; testX < 5; testX++) {
-    BigInteger gx = g(testX);
-    Console.WriteLine($"g({testX}) = {gx}, i [0,p-1]: {gx >= 0 && gx < pTest}");
+int[] tValues = { 10, 12, 14 };
+
+Console.WriteLine($"{"t",4} {"m",10} {"MSE",20} {"Teoretisk Var",20} {"CS tid (ms)",15} {"Chaining tid (ms)",18}");
+Console.WriteLine(new string('-', 95));
+
+foreach (int tValue in tValues)
+{
+    int mValue = 1 << tValue;
+    List<long> estimates8 = new();
+
+    var swCountSketch = System.Diagnostics.Stopwatch.StartNew();
+
+    for (int i = 0; i < 100; i++)
+    {
+        var g8 = CountSketch.FourUniversalHashFunction();
+
+        var sketch8 = new CountSketch(tValue, g8);
+        sketch8.ProcessStream(sigma);
+
+        long X = sketch8.Estimate();
+        estimates8.Add(X);
+    }
+
+    swCountSketch.Stop();
+
+    double mse8 = 0;
+
+    foreach (long X in estimates8)
+    {
+        double diff = X - S;
+        mse8 += diff * diff;
+    }
+
+    mse8 /= 100.0;
+
+    double theoreticalVariance8 = 2.0 * S * S / mValue;
+
+    Console.WriteLine($"{tValue,4} {mValue,10} {mse8,20:E3} {theoreticalVariance8,20:E3} {swCountSketch.ElapsedMilliseconds,15} {swExact.ElapsedMilliseconds,18}");
+
+    var sorted8 = estimates8.OrderBy(x => x).ToList();
+
+    using (StreamWriter writer = new StreamWriter($"opgave8_t{tValue}_sorted_estimates.csv"))
+    {
+        writer.WriteLine("i,X,S,t,m");
+
+        for (int i = 0; i < sorted8.Count; i++)
+        {
+            writer.WriteLine($"{i + 1},{sorted8[i]},{S},{tValue},{mValue}");
+        }
+    }
 }
+

@@ -70,7 +70,7 @@ int nOpg3 = 10_000_000; // n fast, 2^l <= n, dvs. l <= 23
 Console.WriteLine($"{"l",4} {"2^l",10} {"S (shift)",18} {"ms (shift)",12} {"S (prime)",18} {"ms (prime)",12}");
 Console.WriteLine(new string('-', 80));
 
-for (int lVal = 2; lVal <= 6; lVal += 2) {
+for (int lVal = 2; lVal <= 22; lVal += 2) {
     long twoToL = 1L << lVal;
     if (twoToL > nOpg3) {
         Console.WriteLine($"l={lVal}: 2^l={twoToL} > n={nOpg3}, stopper.");
@@ -110,6 +110,7 @@ for (ulong testX = 0; testX < 5; testX++)
     Console.WriteLine($"g({testX}) = {gx}, i [0,p-1]: {gx >= 0 && gx < pTest}");
 }
 
+//Test Opgave 7
 Console.WriteLine("\n=== Opgave 7: Count-Sketch eksperiment ===");
 
 int n7 = 10_000_000;
@@ -267,4 +268,3 @@ foreach (int tValue in tValues)
         }
     }
 }
-

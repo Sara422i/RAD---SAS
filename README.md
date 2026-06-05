@@ -71,6 +71,5 @@ AI assistance was used for:
 
 * Explaining and debugging parts of the implementation
 * Improving wording and clarity in written project material
-* Generating suggestions for code organization and documentation
 
 All code and project decisions were reviewed and adapted by the group members
